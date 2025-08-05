@@ -1,9 +1,10 @@
+import json
 import os
 from typing import Optional
 
+import boto3
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
-from openai import OpenAI
 from opensearchpy import OpenSearch
 from pydantic import BaseModel
 
@@ -13,14 +14,13 @@ load_dotenv()
 mcp = FastMCP("GOV.UK Chat Search")
 
 INDEX_NAME = "govuk_chat_chunked_content"
-EMBEDDING_MODEL = "text-embedding-3-large"
 
 search_client = OpenSearch(
     hosts=[os.getenv("OPENSEARCH_URL")],
     http_auth=(os.getenv("OPENSEARCH_USERNAME"), os.getenv("OPENSEARCH_PASSWORD")),
 )
 
-openai_client = OpenAI(api_key=os.getenv("OPENAI_ACCESS_TOKEN"))
+bedrock = boto3.client('bedrock-runtime', region_name='eu-west-1')
 
 
 class SearchResult(BaseModel):
@@ -34,11 +34,14 @@ class SearchResult(BaseModel):
 
 
 def semantic_search(search_query: str) -> list[SearchResult]:
-    embedding_response = openai_client.embeddings.create(
-        input=search_query, model=EMBEDDING_MODEL
+    embedding_response = bedrock.invoke_model(
+        modelId="amazon.titan-embed-text-v2:0",
+        contentType="application/json",
+        accept="application/json",
+        body=json.dumps({ "inputText": search_query })
     )
 
-    embedding = embedding_response.data[0].embedding
+    response_body = json.loads(embedding_response['body'].read())
 
     search_response = search_client.search(
         index=INDEX_NAME,
@@ -46,13 +49,13 @@ def semantic_search(search_query: str) -> list[SearchResult]:
             "size": 5,
             "query": {
                 "knn": {
-                    "openai_embedding": {
-                        "vector": embedding,
+                    "titan_embedding": {
+                        "vector": response_body["embedding"],
                         "k": 5,
                     }
                 }
             },
-            "_source": {"exclude": ["openai_embedding"]},
+            "_source": {"exclude": ["titan_embedding"]},
         },
     )
 
@@ -64,7 +67,6 @@ def semantic_search(search_query: str) -> list[SearchResult]:
         results.append(SearchResult(**result))
 
     return results
-
 
 @mcp.tool()
 def fetch_govuk_content_chunks(search_query: str) -> list[SearchResult]:

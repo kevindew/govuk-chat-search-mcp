@@ -10,8 +10,8 @@ I cut the number of search results down (drastically) to just 5 returned.
 
 ## Running it
 
-To run it you need the credentials of an OpenSearch instance and an OpenAI key
-(for embeddings). These need to be setup in a .env file.
+To run it you need the credentials of an OpenSearch instance and generate AWS credentials.
+These need to be setup in a .env file.
 
 To use it you can run:
 
