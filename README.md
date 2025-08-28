@@ -10,8 +10,8 @@ I cut the number of search results down (drastically) to just 5 returned.
 
 ## Running it
 
-To run it you need the credentials of an OpenSearch instance and generate AWS credentials.
-These need to be setup in a .env file.
+To run it you need the credentials of an OpenSearch instance and configure these in a .env file. 
+You will also need AWS credentials to access Bedrock, these can be created for a GOV.UK developer using `./export-aws-credentials.sh` where the results will be written to `.env.aws` and will expire.
 
 To use it you can run:
 

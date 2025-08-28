@@ -8,6 +8,7 @@ from mcp.server.fastmcp import FastMCP
 from opensearchpy import OpenSearch
 from pydantic import BaseModel
 
+load_dotenv(".env.aws")
 load_dotenv()
 
 # Create an MCP server
