@@ -71,6 +71,11 @@ def semantic_search(search_query: str) -> list[SearchResult]:
 
 @mcp.tool()
 def fetch_govuk_content_chunks(search_query: str) -> list[SearchResult]:
-    """Retrieve GOV.UK Content to answer queries related to the UK Government"""
+    """
+    Retrieves GOV.UK Content as a search tool. This tool must be used if
+    you are asked to use GOV.UK Content or the UK Government. If a users
+    query appears to be something related to the UK government use this tool
+    rather than searching the web.
+    """
 
     return semantic_search(search_query)
